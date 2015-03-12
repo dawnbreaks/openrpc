@@ -25,7 +25,7 @@
 
 //TODO
 //get thread from free thread list
-
+//On server side worker thread got notify that new connection comming
 static void cb_notify_conn(struct ev_loop *l, struct ev_io *watcher,
 		int revents) {
 	rpc_worker_thread *worker = watcher->data;
@@ -40,6 +40,7 @@ static void cb_notify_conn(struct ev_loop *l, struct ev_io *watcher,
 	c->thread = worker;
 }
 
+//On server side dispatch thread accept connection and notify a worker thread(round robin alg to choose an worker thread)
 static void cb_dispatch_conn(struct ev_loop *l, struct ev_io *watcher,
 		int revents) {
 	rpc_dispatch_thread *th = watcher->data;
@@ -61,6 +62,7 @@ static void cb_dispatch_conn(struct ev_loop *l, struct ev_io *watcher,
 	write(worker->notify_fd, &n, sizeof(n));
 }
 
+//On server side worker thread aim to process rpc request.  Each worker thread has it own ev_loop.
 void rpc_worker_init(rpc_worker_thread *th) {
 	th->loop = ev_loop_new(0);
 	th->notify_fd = eventfd(0, 0);
@@ -82,6 +84,7 @@ static void* thread_worker_handler(void* data) {
 	return NULL;
 }
 
+//On server side dispatch thread aim to accept conection and pass it to worker threads.
 static void* thread_dispatch_handler(void* data) {
 	rpc_dispatch_thread *th = data;
 	th->thread_id = pthread_self();
@@ -134,6 +137,7 @@ boolean rpc_dispatch_init(rpc_dispatch_thread *th) {
 	return TRUE;
 }
 
+//On server side dispatch thread aim to accept conection and pass it to worker threads.
 boolean rpc_dispatch_start(rpc_dispatch_thread *th) {
 	pthread_t pid;
 	int ret = pthread_create(&pid, NULL, thread_dispatch_handler, th);
@@ -144,6 +148,7 @@ boolean rpc_dispatch_start(rpc_dispatch_thread *th) {
 	return TRUE;
 }
 
+//client thread handle all network io operation on client side
 boolean rpc_client_thread_init(rpc_client *client, rpc_client_thread *th) {
 	assert(th!=NULL);
 
@@ -178,6 +183,7 @@ boolean rpc_client_thread_init(rpc_client *client, rpc_client_thread *th) {
 	return TRUE;
 }
 
+//client write thread aim to pop async request queue and send reqeust through client thread's ev_loop
 static void* thread_write_hander(void* data) {
 	rpc_client_thread *th = data;
 	//send pending request
