@@ -12,7 +12,7 @@ On client side:
 On server side
 ==========
 ####### 1. Dispacher thread accept all connections, and then use round robin alg to choose a worker thread to pass the new connection to it.
-(push fd to rpc_queue and write msg to worker.fd to notify worker)
+(push fd to worker.rpc_queue and write msg to worker.fd to wakeup that worker)
 ####### 2. Worker thread handle the actual rpc request, each of worker thread has it own ev_loop.
 
 
