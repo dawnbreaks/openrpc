@@ -1,5 +1,5 @@
-Added by lubinwang
-========
+Added by lubinwang(2005dawnbreaks@gmail.com)
+
 On client side:
 ==========
 *  All request(direct or async) will be push to rpc_async_queue.
